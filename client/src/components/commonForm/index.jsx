@@ -1,5 +1,4 @@
 import React from "react";
-import { Label } from "../ui/label";
 import FormControls from "./FormControls";
 import { Button } from "../ui/button";
 
@@ -9,9 +8,11 @@ function CommonForm({
   setFormData,
   btnText = "Submit",
   isBtnDisabled,
+  handleSubmit
 }) {
   function handleFormSubmit(e) {
     e.preventDefault();
+    handleSubmit()
   }
 
   return (

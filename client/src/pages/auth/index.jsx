@@ -4,20 +4,27 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { signInFormControls, signUpFormControls } from "@/config";
 import CommonForm from "@/components/commonForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/context/authContext";
-import formValidator from "@/utils/formValidator";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
+import { formValidator } from "@/utils/formValidator";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("signIn");
+
   const {
     signInFormData,
     setSignInFormData,
     signUpFormData,
     setSignUpFormData,
-  } = useAuth()
-
-  
+    handleRegisterUser,
+    handleLogin,
+  } = useAuth();
 
   function handleActiveTabChange(value) {
     setActiveTab(value);
@@ -55,6 +62,7 @@ function AuthPage() {
                   setFormData={setSignInFormData}
                   btnText="Sign In"
                   isBtnDisabled={formValidator(signInFormData)}
+                  handleSubmit={handleLogin}
                 />
               </CardContent>
             </Card>
@@ -72,6 +80,7 @@ function AuthPage() {
                   setFormData={setSignUpFormData}
                   btnText="Sign Up"
                   isBtnDisabled={formValidator(signUpFormData)}
+                  handleSubmit={handleRegisterUser}
                 />
               </CardContent>
             </Card>
