@@ -22,3 +22,12 @@ export async function checkAuthService(formData) {
 
   return response.data;
 }
+
+export async function mediaUploadService(formData) {
+  console.log(formData.get('file'));
+  
+  
+  const response = await axiosInstance.post("api/v1/media/upload",formData);
+
+  return response.data;
+}

@@ -1,10 +1,11 @@
 import { Route, Routes } from "react-router-dom";
 import AuthPage from "./pages/auth";
-import { useAuth } from "@authContext";
+import { useAuth } from "./context/authContext";
 import CommonStudentLayout from "./components/studentView/commonLayout";
 import InstructorDashboardPage from "./pages/instructor/dashboard";
 import StudentHomePage from "./pages/student/home";
 import RouteGuard from "./components/routeGuard";
+import AddNewCourse from "./pages/instructor/addNewCourse";
 
 function App() {
   const { auth } = useAuth();
@@ -28,6 +29,16 @@ function App() {
             <RouteGuard
               authenticated={auth.authenticated}
               element={<InstructorDashboardPage />}
+              user={auth.user}
+            />
+          }
+        />
+        <Route
+          path="/instructor/add-new-course"
+          element={
+            <RouteGuard
+              authenticated={auth.authenticated}
+              element={<AddNewCourse />}
               user={auth.user}
             />
           }

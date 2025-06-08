@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { initialSignInFormData, initialSignUpFormData } from "@/config";
 import { checkAuthService, loginService, registerService } from "@/services";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -78,9 +79,10 @@ export function AuthProvider({ children }) {
           isLoading: false,
         });
       } else {
-        setAuth({
+        updateState({
           authenticated: false,
           user: null,
+          isLoading: false,
         });
       }
     } catch (error) {
@@ -93,6 +95,15 @@ export function AuthProvider({ children }) {
         });
       }
     }
+  }
+
+  function resetCredentials(){
+    updateState({
+      authenticated: false,
+      user: null,
+      isLoading: false,
+    });
+    sessionStorage.removeItem("accessToken")
   }
 
   useEffect(() => {
@@ -109,9 +120,10 @@ export function AuthProvider({ children }) {
         handleRegisterUser,
         handleLogin,
         auth,
+        resetCredentials,
       }}
     >
-      {children}
+      {auth.isLoading ? <Skeleton /> : children}
     </AuthContext.Provider>
   );
 }

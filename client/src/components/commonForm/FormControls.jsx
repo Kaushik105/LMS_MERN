@@ -34,16 +34,19 @@ function FormControls({ formControls, formData, setFormData }) {
         element = (
           <Select
             onValueChange={(value) =>
-              setFormData({ ...formData, [controlItem.name]: value })
+              {setFormData({ ...formData, [controlItem.name]: value })
+              console.log(value)}
+              
             }
+            value={formData[controlItem.name] || ""}
           >
-            <SelectTrigger>
-              <SelectValue value={controlItem.label} />
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={controlItem.label} />
             </SelectTrigger>
             <SelectContent>
               {controlItem.options && controlItem.options.length > 0
                 ? controlItem.options.map((optionItem) => (
-                    <SelectItem value={optionItem.name}>
+                    <SelectItem key={optionItem.id} value={optionItem.id}>
                       {optionItem.label}
                     </SelectItem>
                   ))
