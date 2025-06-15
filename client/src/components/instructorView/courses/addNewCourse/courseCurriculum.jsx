@@ -1,3 +1,4 @@
+import MediaProgressBar from "@/components/mediaProgressBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,8 +10,14 @@ import { Label } from "@radix-ui/react-dropdown-menu";
 import React from "react";
 
 function CourseCurriculum() {
-  const { courseCurriculumFormData, setCourseCurriculumFormData } =
-    useInstructor();
+  const {
+    courseCurriculumFormData,
+    setCourseCurriculumFormData,
+    setMediaUploadProgressPercentage,
+    setMediaUploadProgress,
+    mediaUploadProgress,
+    mediaUploadProgressPercentage,
+  } = useInstructor();
 
   function handleAddNewLecture() {
     setCourseCurriculumFormData([
@@ -25,14 +32,20 @@ function CourseCurriculum() {
     cpyFormData[index] = { ...cpyFormData[index], [key]: value };
     setCourseCurriculumFormData(cpyFormData);
   }
+  
 
   async function handleLectureFileChange(value, index) {
 
     if (value) {
       try {
+        setMediaUploadProgress(true)
+        setMediaUploadProgressPercentage(0);
         const videoFormdata = new FormData();
         videoFormdata.append("file", value);
-        const result = await mediaUploadService(videoFormdata);
+        const result = await mediaUploadService(
+          videoFormdata,
+          setMediaUploadProgressPercentage
+        );
         if (result?.success) {
           let cpyFormData = [...courseCurriculumFormData];
           cpyFormData[index] = {
@@ -42,13 +55,12 @@ function CourseCurriculum() {
           };
           setCourseCurriculumFormData(cpyFormData);
         }
+        setMediaUploadProgress(false)
       } catch (error) {
         console.log(error)
       }
     }
   }
-
-  console.log(courseCurriculumFormData);
   
 
   return (
@@ -57,6 +69,10 @@ function CourseCurriculum() {
         <CardTitle className={"text-xl"}>Course Curriculum</CardTitle>
       </CardHeader>
       <CardContent>
+        {
+          mediaUploadProgress ? <MediaProgressBar isMediaUploading={mediaUploadProgress} progress={mediaUploadProgressPercentage}/> : null
+        }
+        
         <div className="flex flex-col gap-2 w-full">
           <Button className={"w-30 h-10"} onClick={handleAddNewLecture}>
             Add Lecture
