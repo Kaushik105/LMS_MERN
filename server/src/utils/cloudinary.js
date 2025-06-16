@@ -23,7 +23,8 @@ async function uploadMedia(filePath) {
 }
 async function deleteMedia(publicId) {
 	try {
-		const result = await cloudinary.uploader.destroy(publicId);
+		
+		const result = await cloudinary.uploader.destroy(publicId, {resource_type: "video"});
         return result
 	} catch (error) {
 		console.log(error);

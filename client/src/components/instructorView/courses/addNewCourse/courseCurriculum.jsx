@@ -6,8 +6,9 @@ import { Switch } from "@/components/ui/switch";
 import VideoPlayer from "@/components/videoPlayer";
 import { courseCurriculumInitialFormData } from "@/config";
 import { useInstructor } from "@/context/instructorContext";
-import { mediaUploadService } from "@/services";
+import { mediaDeleteService, mediaUploadService } from "@/services";
 import { Label } from "@radix-ui/react-dropdown-menu";
+import { inertia } from "framer-motion";
 import React from "react";
 
 function CourseCurriculum() {
@@ -35,6 +36,8 @@ function CourseCurriculum() {
   }
 
   async function handleLectureFileChange(value, index) {
+    console.log("file changed");
+
     if (value) {
       try {
         setMediaUploadProgress(true);
@@ -61,6 +64,48 @@ function CourseCurriculum() {
     }
   }
 
+  async function handleDeleteLecture(index) {
+    let cpyFormData = [...courseCurriculumFormData];
+
+    const videoDeleted = await mediaDeleteService(cpyFormData[index].public_id);
+
+    if (videoDeleted?.success) {
+      cpyFormData = cpyFormData.filter(
+        (item) => item.title !== cpyFormData[index].title
+      );
+    }
+
+    console.log(cpyFormData);
+
+    setCourseCurriculumFormData(cpyFormData);
+  }
+
+  function addLectureFormValid() {
+    return courseCurriculumFormData.every(
+      (item) =>
+        item &&
+        typeof item == "object" &&
+        item.title.trim() !== "" &&
+        item.videoUrl.trim() !== ""
+    );
+  }
+
+  console.log(courseCurriculumFormData);
+
+  async function handleReplaceVideo(index) {
+    let cpyFormData = [...courseCurriculumFormData];
+    let getCurrentPublicId = cpyFormData[index].public_id;
+    const response = await mediaDeleteService(getCurrentPublicId);
+    if (response?.success) {
+      cpyFormData[index] = {
+        ...cpyFormData[index],
+        public_id: "",
+        videoUrl: "",
+      };
+      setCourseCurriculumFormData(cpyFormData);
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -75,7 +120,11 @@ function CourseCurriculum() {
         ) : null}
 
         <div className="flex flex-col gap-2 w-full">
-          <Button className={"w-30 h-10"} onClick={handleAddNewLecture}>
+          <Button
+            disabled={!addLectureFormValid() || mediaUploadProgress}
+            className={"w-30 h-10"}
+            onClick={handleAddNewLecture}
+          >
             Add Lecture
           </Button>
           {courseCurriculumFormData?.map((formItem, index) => (
@@ -124,8 +173,16 @@ function CourseCurriculum() {
                     width="450px"
                     height="220px"
                   />
-                  <Button>Replace</Button>
-                  <Button>Delete</Button>
+                  <Button
+                    onClick={() => {
+                      handleReplaceVideo(index);
+                    }}
+                  >
+                    Replace
+                  </Button>
+                  <Button onClick={() => handleDeleteLecture(index)}>
+                    Delete
+                  </Button>
                 </div>
               ) : null}
             </div>

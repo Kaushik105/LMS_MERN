@@ -26,10 +26,20 @@ export async function mediaUploadService(formData, onProgressCallback) {
     onUploadProgress: (progressEvent) => {
       const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / progressEvent.total
-      );      
-      onProgressCallback(percentCompleted)
+      );
+      onProgressCallback(percentCompleted);
     },
+  
   });
+
+  return response.data;
+}
+
+export async function mediaDeleteService(id) {
+  
+  const response = await axiosInstance.delete(
+    `api/v1/media/delete/${encodeURIComponent(id)}`
+  );
 
   return response.data;
 }
