@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import VideoPlayer from "@/components/videoPlayer";
 import { courseCurriculumInitialFormData } from "@/config";
 import { useInstructor } from "@/context/instructorContext";
 import { mediaUploadService } from "@/services";
@@ -32,13 +33,11 @@ function CourseCurriculum() {
     cpyFormData[index] = { ...cpyFormData[index], [key]: value };
     setCourseCurriculumFormData(cpyFormData);
   }
-  
 
   async function handleLectureFileChange(value, index) {
-
     if (value) {
       try {
-        setMediaUploadProgress(true)
+        setMediaUploadProgress(true);
         setMediaUploadProgressPercentage(0);
         const videoFormdata = new FormData();
         videoFormdata.append("file", value);
@@ -55,13 +54,12 @@ function CourseCurriculum() {
           };
           setCourseCurriculumFormData(cpyFormData);
         }
-        setMediaUploadProgress(false)
+        setMediaUploadProgress(false);
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     }
   }
-  
 
   return (
     <Card>
@@ -69,10 +67,13 @@ function CourseCurriculum() {
         <CardTitle className={"text-xl"}>Course Curriculum</CardTitle>
       </CardHeader>
       <CardContent>
-        {
-          mediaUploadProgress ? <MediaProgressBar isMediaUploading={mediaUploadProgress} progress={mediaUploadProgressPercentage}/> : null
-        }
-        
+        {mediaUploadProgress ? (
+          <MediaProgressBar
+            isMediaUploading={mediaUploadProgress}
+            progress={mediaUploadProgressPercentage}
+          />
+        ) : null}
+
         <div className="flex flex-col gap-2 w-full">
           <Button className={"w-30 h-10"} onClick={handleAddNewLecture}>
             Add Lecture
@@ -116,6 +117,17 @@ function CourseCurriculum() {
                   handleLectureFileChange(e?.target?.files?.[0], index);
                 }}
               />
+              {courseCurriculumFormData[index]?.videoUrl ? (
+                <div className="flex gap-3 items-center">
+                  <VideoPlayer
+                    url={courseCurriculumFormData[index]?.videoUrl}
+                    width="450px"
+                    height="220px"
+                  />
+                  <Button>Replace</Button>
+                  <Button>Delete</Button>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
