@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const lectureSchema = new mongoose.Schema({
 	title: String,
 	videoUrl: String,
-	publicId: String,
+	public_id: String,
 	freePreview: String,
 });
 
@@ -19,6 +19,8 @@ const courseSchema = new mongoose.Schema({
 	image: String,
 	pricing: String,
 	objectives: String,
+	level: String,
+	welcomeMessage: String,
 	students: [
 		{
 			studentId: String,

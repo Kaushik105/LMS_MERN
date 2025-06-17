@@ -3,41 +3,57 @@ import InstructorDashboard from "@/components/instructorView/instructorDashboard
 import { Button } from "@/components/ui/button";
 import { Tabs } from "@/components/ui/tabs";
 import { useAuth } from "@/context/authContext";
+import { useInstructor } from "@/context/instructorContext";
+import { fetchInstructorCourseListService } from "@/services";
 import { TabsContent } from "@radix-ui/react-tabs";
 import { BookOpenText, ChartColumnDecreasing, LogOut } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
- const instructorMenuItems = [
-  {
-    icon: ChartColumnDecreasing,
-    label: "Dashboard",
-    value: "dashboard",
-    component: <InstructorDashboard />,
-  },
-  {
-    icon: BookOpenText,
-    label: "Courses",
-    value: "courses",
-    component: <InstructorCourses />,
-  },
-  {
-    icon: LogOut,
-    label: "Logout",
-    value: "logout",
-    component: null,
-  },
-];
 
 function InstructorDashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { resetCredentials } = useAuth();
+  const { instructorCoursesList, setInstructorCoursesList } = useInstructor();
+  const instructorMenuItems = [
+    {
+      icon: ChartColumnDecreasing,
+      label: "Dashboard",
+      value: "dashboard",
+      component: <InstructorDashboard />,
+    },
+    {
+      icon: BookOpenText,
+      label: "Courses",
+      value: "courses",
+      component: <InstructorCourses listOfCourses={instructorCoursesList} />,
+    },
+    {
+      icon: LogOut,
+      label: "Logout",
+      value: "logout",
+      component: null,
+    },
+  ];
+
+  async function updateInstructorCoursesList(params) {
+    const response = await fetchInstructorCourseListService();
+
+    if (response?.success) {
+      setInstructorCoursesList(response?.data);
+    }
+
+  }
+
+  useEffect(() => {
+    updateInstructorCoursesList();
+  }, []);
 
   function handleTabChange(tab) {
     setActiveTab(tab);
   }
 
   function handleLogOut() {
-    resetCredentials()
+    resetCredentials();
   }
 
   return (
@@ -70,7 +86,11 @@ function InstructorDashboardPage() {
         <h1 className="text-3xl m-3 font-bold">Dashboard</h1>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {instructorMenuItems.map((menuItem) => (
-            <TabsContent key={menuItem.value} className="m-3" value={menuItem.value}>
+            <TabsContent
+              key={menuItem.value}
+              className="m-3"
+              value={menuItem.value}
+            >
               {menuItem.component !== null ? menuItem.component : null}
             </TabsContent>
           ))}
@@ -81,4 +101,3 @@ function InstructorDashboardPage() {
 }
 
 export default InstructorDashboardPage;
-

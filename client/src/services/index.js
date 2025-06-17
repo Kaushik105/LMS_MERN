@@ -56,16 +56,17 @@ export async function fetchInstructorCourseListService() {
 
   return response.data;
 }
-export async function fetchInstructorCourseDetailsByIdService(id) {
+export async function fetchInstructorCourseDetailsByIdService(id) {  
   const response = await axiosInstance.get(
     `/api/v1/instructor/course/get/details/${id}`
   );
 
   return response.data;
 }
-export async function updateInstructorCourseByIdService(id) {
+export async function updateInstructorCourseByIdService(id, formdata) {
   const response = await axiosInstance.put(
-    `/api/v1/instructor/course/update/${id}`
+    `/api/v1/instructor/course/update/${id}`,
+    formdata
   );
 
   return response.data;

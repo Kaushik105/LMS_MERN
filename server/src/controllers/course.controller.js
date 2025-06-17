@@ -19,7 +19,7 @@ const addNewCourse = asyncHandler(async (req, res) => {
 		.json(new ApiResponse(200, savedNewCourse, "course added"));
 });
 const getAllInstuctorCourses = asyncHandler(async (req, res) => {
-	const courses = await courses.find({});
+	const courses = await Course.find({});
 
 	if (!courses) {
 		throw new ApiError(500, "cannot get courses");

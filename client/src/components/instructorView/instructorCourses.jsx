@@ -11,9 +11,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router-dom";
 import { DeleteIcon, EditIcon } from "lucide-react";
+import { useInstructor } from "@/context/instructorContext";
+import { courseCurriculumInitialFormData, courseLandingInitialFormData } from "@/config";
 
-function InstructorCourses() {
+function InstructorCourses({listOfCourses}) {
   const navigate = useNavigate();
+  const {
+    currentEditedCourseId,
+    setCurrentEditedCourseId,
+    setCourseCurriculumFormData,
+    setCourseLandingFormData,
+  } = useInstructor();
+
+
   return (
     <div className="w-full">
       <Card>
@@ -23,6 +33,9 @@ function InstructorCourses() {
             className={"p-5.5 cursor-pointer text-[17px]"}
             onClick={() => {
               navigate("/instructor/add-new-course");
+              setCourseCurriculumFormData(courseCurriculumInitialFormData)
+              setCourseLandingFormData(courseLandingInitialFormData)
+              setCurrentEditedCourseId(null)
             }}
           >
             Add New Course
@@ -39,27 +52,35 @@ function InstructorCourses() {
               </TableRow>
             </TableHeader>
             <TableBody className={"text-[17px]"}>
-              <TableRow>
-                <TableCell className="font-medium">
-                  React and Redux full course 2025
-                </TableCell>
-                <TableCell className={"font-semibold"}>355</TableCell>
-                <TableCell className={"font-semibold"}>$ 5000</TableCell>
-                <TableCell className="text-right font-semibold">
-                  <Button
-                    variant={"outline"}
-                    className={"border-none shadow-none"}
-                  >
-                    <EditIcon className="size-[22px]" />
-                  </Button>
-                  <Button
-                    variant={"outline"}
-                    className={"border-none shadow-none"}
-                  >
-                    <DeleteIcon className="size-[22px]" />
-                  </Button>
-                </TableCell>
-              </TableRow>
+              {listOfCourses && listOfCourses.length > 0
+                ? listOfCourses.map((courseItem) => (
+                    <TableRow key={courseItem?._id}>
+                      <TableCell className="font-medium">
+                        {courseItem?.title}
+                      </TableCell>
+                      <TableCell className={"font-semibold"}>{courseItem?.students?.length}</TableCell>
+                      <TableCell className={"font-semibold"}>$ {courseItem?.pricing}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        <Button
+                          variant={"outline"}
+                          className={"border-none shadow-none"}
+                          onClick={() => { 
+                            setCurrentEditedCourseId(courseItem?._id)
+                            navigate(`/instructor/edit-course/${courseItem?._id}`)
+                           }}
+                        >
+                          <EditIcon className="size-[22px]" />
+                        </Button>
+                        <Button
+                          variant={"outline"}
+                          className={"border-none shadow-none"}
+                        >
+                          <DeleteIcon className="size-[22px]" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : null}
             </TableBody>
           </Table>
         </CardContent>
