@@ -14,7 +14,7 @@ export function authenticate(req, res, next) {
 
 	if (!payload) {
 		throw new ApiError(400, "Invalid token");
-	}
+	}	
 
 	req.user = payload;
 

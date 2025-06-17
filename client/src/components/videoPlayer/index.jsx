@@ -87,10 +87,8 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
   }
 
   const handleFullScreen = useCallback(() => {
-    console.log(playerContainerRef?.current);
     if (!isFullScreen) {
       if (playerContainerRef?.current?.requestFullscreen) {
-        console.log(playerContainerRef?.current);
         
         playerContainerRef?.current?.requestFullscreen();
       }

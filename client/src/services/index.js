@@ -29,16 +29,43 @@ export async function mediaUploadService(formData, onProgressCallback) {
       );
       onProgressCallback(percentCompleted);
     },
-  
   });
 
   return response.data;
 }
 
 export async function mediaDeleteService(id) {
-  
   const response = await axiosInstance.delete(
     `api/v1/media/delete/${encodeURIComponent(id)}`
+  );
+
+  return response.data;
+}
+
+export async function addNewCourseService(newCourseData) {
+  const response = await axiosInstance.post(
+    "/api/v1/instructor/course/add",
+    newCourseData
+  );
+
+  return response.data;
+}
+
+export async function fetchInstructorCourseListService() {
+  const response = await axiosInstance.get("/api/v1/instructor/course/get");
+
+  return response.data;
+}
+export async function fetchInstructorCourseDetailsByIdService(id) {
+  const response = await axiosInstance.get(
+    `/api/v1/instructor/course/get/details/${id}`
+  );
+
+  return response.data;
+}
+export async function updateInstructorCourseByIdService(id) {
+  const response = await axiosInstance.put(
+    `/api/v1/instructor/course/update/${id}`
   );
 
   return response.data;

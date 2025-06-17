@@ -34,8 +34,7 @@ function FormControls({ formControls, formData, setFormData }) {
         element = (
           <Select
             onValueChange={(value) =>
-              {setFormData({ ...formData, [controlItem.name]: value })
-              console.log(value)}
+              {setFormData({ ...formData, [controlItem.name]: value })}
               
             }
             value={formData[controlItem.name] || ""}

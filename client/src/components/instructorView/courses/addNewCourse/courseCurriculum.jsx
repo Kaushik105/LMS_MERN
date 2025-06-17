@@ -36,7 +36,6 @@ function CourseCurriculum() {
   }
 
   async function handleLectureFileChange(value, index) {
-    console.log("file changed");
 
     if (value) {
       try {
@@ -75,8 +74,6 @@ function CourseCurriculum() {
       );
     }
 
-    console.log(cpyFormData);
-
     setCourseCurriculumFormData(cpyFormData);
   }
 
@@ -90,7 +87,6 @@ function CourseCurriculum() {
     );
   }
 
-  console.log(courseCurriculumFormData);
 
   async function handleReplaceVideo(index) {
     let cpyFormData = [...courseCurriculumFormData];

@@ -41,6 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
 					userName: newUser.userName,
 					userEmail: newUser.userEmail,
 					role: newUser.role,
+					_id: newUser._id
 				},
 			},
 			"Registration successful"
@@ -76,6 +77,7 @@ const loginUser = asyncHandler(async (req, res) => {
 					userName: loginUser.userName,
 					userEmail: loginUser.userEmail,
 					role: loginUser.role,
+					_id: loginUser._id,
 				},
 			},
 			"Logged in successfully"
