@@ -4,6 +4,7 @@ import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 import authRouter from "./routes/auth.route.js"
 import mediaRouter from  "./routes/media.routes.js"
 import instrtuctorCourseRouter from  "./routes/course.route.js"
+import studentViewRotuer from "./routes/studentView.route.js"
 
 const app = express()
 
@@ -21,6 +22,8 @@ app.use(
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/media", mediaRouter)
 app.use("/api/v1/instructor/course", instrtuctorCourseRouter)
+//studentview
+app.use("/api/v1/student", studentViewRotuer)
 
 
 app.use(errorHandler);

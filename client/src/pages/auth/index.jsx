@@ -37,6 +37,7 @@ function AuthPage() {
           <GraduationCap size={44} />
           <h1 className="text-2xl font-bold">LMS Learning</h1>
         </Link>
+
       </header>
       <div className="min-h-screen flex justify-center bg-background items-center">
         <Tabs

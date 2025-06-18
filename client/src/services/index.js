@@ -56,7 +56,7 @@ export async function fetchInstructorCourseListService() {
 
   return response.data;
 }
-export async function fetchInstructorCourseDetailsByIdService(id) {  
+export async function fetchInstructorCourseDetailsByIdService(id) {
   const response = await axiosInstance.get(
     `/api/v1/instructor/course/get/details/${id}`
   );
@@ -72,16 +72,31 @@ export async function updateInstructorCourseByIdService(id, formdata) {
   return response.data;
 }
 
-
 export async function bulkMediaUploadService(formData, onProgressCallback) {
-  const response = await axiosInstance.post("api/v1/media/bulk-upload", formData, {
-    onUploadProgress: (progressEvent) => {
-      const percentCompleted = Math.round(
-        (progressEvent.loaded * 100) / progressEvent.total
-      );
-      onProgressCallback(percentCompleted);
-    },
-  });
+  const response = await axiosInstance.post(
+    "api/v1/media/bulk-upload",
+    formData,
+    {
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round(
+          (progressEvent.loaded * 100) / progressEvent.total
+        );
+        onProgressCallback(percentCompleted);
+      },
+    }
+  );
 
   return response.data;
+}
+
+export async function fetchStudentViewCourseListService() {
+  const response = await axiosInstance.get("/api/v1/student/course/get");
+
+  return response.data;
+}
+export async function fetchStudentViewCourseDetailsByIdService(id) {
+  const response = await axiosInstance.get(
+    `/api/v1/instructor/course/get/details/${id}`
+  );
+  return response?.data;
 }
