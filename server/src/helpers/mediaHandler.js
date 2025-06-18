@@ -19,6 +19,26 @@ const handleUpload = asyncHandler(async (req, res) => {
 		.status(200)
 		.json(new ApiResponse(200, uploadResponse, "media uploaded successfully"));
 });
+const handleBulkUpload = asyncHandler(async (req, res) => {
+	const filesPath = req?.files?.map((fileItem) => fileItem.path);
+
+	if (!(filesPath || Array.isArray(filesPath) || filesPath.length <= 0)) {
+		throw new ApiError(400, "files path unavailable");
+	}
+
+	let bulkUploadPromises = filesPath.map(async (filePath) => {
+		const uploadResponse = await uploadMedia(filePath);
+		await fs.unlink(filePath);
+		return uploadResponse;
+	});
+	const bulkUploadResponse = await Promise.all(bulkUploadPromises);
+
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(200, bulkUploadResponse, "media uploaded successfully")
+		);
+});
 const handleDelete = asyncHandler(async (req, res) => {
 	const { publicId } = req?.params;
 
@@ -33,4 +53,4 @@ const handleDelete = asyncHandler(async (req, res) => {
 		.json(new ApiResponse(200, deleteResponse, "media deleted successfully"));
 });
 
-export { handleDelete, handleUpload };
+export { handleDelete, handleUpload, handleBulkUpload };

@@ -6,10 +6,14 @@ import { Switch } from "@/components/ui/switch";
 import VideoPlayer from "@/components/videoPlayer";
 import { courseCurriculumInitialFormData } from "@/config";
 import { useInstructor } from "@/context/instructorContext";
-import { mediaDeleteService, mediaUploadService } from "@/services";
+import {
+  bulkMediaUploadService,
+  mediaDeleteService,
+  mediaUploadService,
+} from "@/services";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import { inertia } from "framer-motion";
-import React from "react";
+import { TruckElectric, Upload } from "lucide-react";
+import React, { useRef } from "react";
 
 function CourseCurriculum() {
   const {
@@ -20,6 +24,8 @@ function CourseCurriculum() {
     mediaUploadProgress,
     mediaUploadProgressPercentage,
   } = useInstructor();
+
+  const bulkInputRef = useRef(null);
 
   function handleAddNewLecture() {
     setCourseCurriculumFormData([
@@ -36,7 +42,6 @@ function CourseCurriculum() {
   }
 
   async function handleLectureFileChange(value, index) {
-
     if (value) {
       try {
         setMediaUploadProgress(true);
@@ -87,7 +92,6 @@ function CourseCurriculum() {
     );
   }
 
-
   async function handleReplaceVideo(index) {
     let cpyFormData = [...courseCurriculumFormData];
     let getCurrentPublicId = cpyFormData[index].public_id;
@@ -102,10 +106,86 @@ function CourseCurriculum() {
     }
   }
 
+  function areAllCourseCurriculumlFormDataIsEmpty(arr) {
+    return arr.every((object) => {
+      return Object.entries(object).every(([key, value]) => {
+        if (typeof value === "boolean") {
+          return true;
+        }
+        return value === "";
+      });
+    });
+  }
+
+  async function handleBulkUpload(e) {
+    let selectedFiles = e.target?.files;
+    if (selectedFiles && selectedFiles.length > 10) {
+      alert("maximum 10 files allowed at a time");
+      return;
+    }
+
+    try {
+      setMediaUploadProgress(true);
+      setMediaUploadProgressPercentage(0);
+      const videoFormData = new FormData();
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        videoFormData.append("files", file);
+      }
+      const response = await bulkMediaUploadService(
+        videoFormData,
+        setMediaUploadProgressPercentage
+      );
+
+      let cpyCourseCurriculumFormData = areAllCourseCurriculumlFormDataIsEmpty(
+        courseCurriculumFormData
+      )
+        ? []
+        : [...courseCurriculumFormData];
+      cpyCourseCurriculumFormData = [
+        ...cpyCourseCurriculumFormData,
+        ...response?.data?.map((item, index) => ({
+          title: `Lecture ${cpyCourseCurriculumFormData.length + index + 1}`,
+          freePreview: false,
+          videoUrl: item.url,
+          public_id: item.public_id,
+        })),
+      ];
+
+      setCourseCurriculumFormData(cpyCourseCurriculumFormData);
+
+      setMediaUploadProgress(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function handleBulkUploadClick() {
+    bulkInputRef?.current.click();
+  }
+
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className={"flex justify-between"}>
         <CardTitle className={"text-xl"}>Course Curriculum</CardTitle>
+        <Button
+          onClick={handleBulkUploadClick}
+          variant={"outline"}
+          className={"cursor-pointer"}
+        >
+          {" "}
+          <Input
+            name="files"
+            type={"file"}
+            accept="video/*"
+            multiple
+            max={5}
+            ref={bulkInputRef}
+            onChange={(e) => handleBulkUpload(e)}
+            hidden
+          />
+          <Upload /> Bulk Upload
+        </Button>
       </CardHeader>
       <CardContent>
         {mediaUploadProgress ? (
@@ -118,7 +198,7 @@ function CourseCurriculum() {
         <div className="flex flex-col gap-2 w-full">
           <Button
             disabled={!addLectureFormValid() || mediaUploadProgress}
-            className={"w-30 h-10"}
+            className={"w-30 h-10 cursor-pointer"}
             onClick={handleAddNewLecture}
           >
             Add Lecture

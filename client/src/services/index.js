@@ -71,3 +71,17 @@ export async function updateInstructorCourseByIdService(id, formdata) {
 
   return response.data;
 }
+
+
+export async function bulkMediaUploadService(formData, onProgressCallback) {
+  const response = await axiosInstance.post("api/v1/media/bulk-upload", formData, {
+    onUploadProgress: (progressEvent) => {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total
+      );
+      onProgressCallback(percentCompleted);
+    },
+  });
+
+  return response.data;
+}
