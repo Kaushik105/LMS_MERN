@@ -3,32 +3,33 @@ import { courseCategories } from "@/config";
 import { useStudent } from "@/context/studentContext";
 import { fetchStudentViewCourseListService } from "@/services";
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function StudentHomePage() {
   const { studentViewCourseList, setStudentViewCourseList } = useStudent();
+  const navigate = useNavigate();
 
+  
+  function handleNavigateToListing() {
+    navigate("/student/courses");
+  }
+  
   async function updateStudentViewCourseList() {
-    const response = await fetchStudentViewCourseListService()
+    const response = await fetchStudentViewCourseListService();
 
     if (response?.success) {
-      setStudentViewCourseList(response?.data)
+      setStudentViewCourseList(response?.data);
     }
-    
-  }  
-
-  function handleNavigateToListing() {}
-
-
+  }
 
   useEffect(() => {
-  updateStudentViewCourseList()
+    updateStudentViewCourseList();
+  }, []);
 
-  }, [])
-  
   return (
     <div>
-      <section className="bg-white">
-        <div className="mx-auto w-full px-4 py-16 sm:px-6 sm:py-24 md:grid md:grid-cols-2 md:items-center md:gap-4 lg:px-10 lg:py-32">
+      <section className="bg-white h-screen">
+        <div className="mx-auto w-full h-full px-4 py-16 sm:px-6 sm:py-24 md:grid md:grid-cols-2 md:items-center md:gap-4 lg:px-10 lg:py-32">
           <div className="max-w-prose text-left">
             <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
               Learn What Matters
@@ -37,7 +38,8 @@ function StudentHomePage() {
             </h1>
 
             <p className="mt-4 text-base text-pretty text-gray-700 sm:text-lg/relaxed">
-              Level up your career by learning the essential skills from the bests in the field on the Worlds No. 1 online learning platform.
+              Level up your career by learning the essential skills from the
+              bests in the field on the Worlds No. 1 online learning platform.
             </p>
 
             <div className="mt-4 flex gap-4 sm:mt-6">
@@ -85,7 +87,11 @@ function StudentHomePage() {
         </div>
         <div className="grid p-4 sm:grid-cols-1 md:grid-cols-3 lg:gap-5 gap-4 lg:grid-cols-5">
           {courseCategories.map((item) => (
-            <Card onClick={handleNavigateToListing} key={item.id}>
+            <Card
+              onClick={handleNavigateToListing}
+              className={" cursor-pointer"}
+              key={item.id}
+            >
               <CardHeader className={"gap-0 text-center"}>
                 <CardTitle className={"text-xl"}>{item.label}</CardTitle>
               </CardHeader>
@@ -100,7 +106,10 @@ function StudentHomePage() {
         <div className="grid p-4 sm:grid-cols-1 md:grid-cols-3 gap-4 lg:grid-cols-5">
           {studentViewCourseList && studentViewCourseList?.length > 0
             ? studentViewCourseList.map((courseItem) => (
-                <Card className={"py-1 gap-1 md:py-2 lg:py-2.5"}>
+                <Card
+                  key={courseItem._id}
+                  className={"py-1 gap-1 md:py-2 lg:py-2.5"}
+                >
                   <CardHeader className={"gap-0 px-1 md:px-2 lg:px-2.5"}>
                     <img
                       className="h-[170px] w-full object-cover"

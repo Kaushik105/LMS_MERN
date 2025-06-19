@@ -89,14 +89,14 @@ export async function bulkMediaUploadService(formData, onProgressCallback) {
   return response.data;
 }
 
-export async function fetchStudentViewCourseListService() {
-  const response = await axiosInstance.get("/api/v1/student/course/get");
+export async function fetchStudentViewCourseListService(query) {
+  const response = await axiosInstance.get(`/api/v1/student/course/get${query}`);
 
   return response.data;
 }
 export async function fetchStudentViewCourseDetailsByIdService(id) {
   const response = await axiosInstance.get(
-    `/api/v1/instructor/course/get/details/${id}`
+    `/api/v1/student/course/get/details/${id}`
   );
   return response?.data;
 }
