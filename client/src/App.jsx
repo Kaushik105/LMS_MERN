@@ -7,6 +7,7 @@ import StudentHomePage from "./pages/student/home";
 import RouteGuard from "./components/routeGuard";
 import AddNewCourse from "./pages/instructor/addNewCourse";
 import StudentViewCoursesPage from "./pages/student/courses";
+import StudentViewCourseDetails from "./pages/student/courseDetails";
 
 function App() {
   const { auth } = useAuth();
@@ -67,6 +68,10 @@ function App() {
           <Route path="" element={<StudentHomePage />} />
           <Route path="home" element={<StudentHomePage />} />
           <Route path="courses" element={<StudentViewCoursesPage />} />
+          <Route
+            path="course-details/:id"
+            element={<StudentViewCourseDetails />}
+          />
         </Route>
       </Routes>
     </>

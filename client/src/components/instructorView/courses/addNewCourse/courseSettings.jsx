@@ -24,11 +24,13 @@ function CourseSettings() {
           courseImageFormData,
           setMediaUploadProgressPercentage
         );
+        console.log(result);
+
         if (result?.success) {
           let cpyCourseLandingFormData = { ...courseLandingFormData };
           cpyCourseLandingFormData = {
             ...cpyCourseLandingFormData,
-            image: result?.data?.url,
+            image: result?.data?.secure_url,
           };
           setCourseLandingFormData(cpyCourseLandingFormData);
         }
@@ -38,7 +40,6 @@ function CourseSettings() {
       }
     }
   }
-  
 
   return (
     <Card>
@@ -51,7 +52,9 @@ function CourseSettings() {
             isMediaUploading={mediaUploadProgress}
             progress={mediaUploadProgressPercentage}
           />
-        ) : courseLandingFormData?.image !== '' ? <img src={courseLandingFormData?.image}/> : (
+        ) : courseLandingFormData?.image !== "" ? (
+          <img src={courseLandingFormData?.image} />
+        ) : (
           <>
             <p className="text-shadow-md font-medium mb-3">Add Course Image</p>
             <div className="flex items-center justify-center w-full">

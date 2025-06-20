@@ -12,7 +12,7 @@ import {
   mediaUploadService,
 } from "@/services";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import { TruckElectric, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import React, { useRef } from "react";
 
 function CourseCurriculum() {
@@ -52,12 +52,14 @@ function CourseCurriculum() {
           videoFormdata,
           setMediaUploadProgressPercentage
         );
+        console.log(result);
+
         if (result?.success) {
           let cpyFormData = [...courseCurriculumFormData];
           cpyFormData[index] = {
             ...cpyFormData[index],
             public_id: result?.data?.public_id,
-            videoUrl: result?.data?.url,
+            videoUrl: result?.data?.secure_url,
           };
           setCourseCurriculumFormData(cpyFormData);
         }

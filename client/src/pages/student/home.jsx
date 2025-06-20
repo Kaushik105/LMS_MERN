@@ -9,13 +9,12 @@ function StudentHomePage() {
   const { studentViewCourseList, setStudentViewCourseList } = useStudent();
   const navigate = useNavigate();
 
-  
   function handleNavigateToListing() {
     navigate("/student/courses");
   }
-  
+
   async function updateStudentViewCourseList() {
-    const response = await fetchStudentViewCourseListService();
+    const response = await fetchStudentViewCourseListService("");
 
     if (response?.success) {
       setStudentViewCourseList(response?.data);
