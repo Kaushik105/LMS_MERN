@@ -90,7 +90,9 @@ export async function bulkMediaUploadService(formData, onProgressCallback) {
 }
 
 export async function fetchStudentViewCourseListService(query) {
-  const response = await axiosInstance.get(`/api/v1/student/course/get${query}`);
+  const response = await axiosInstance.get(
+    `/api/v1/student/course/get${query}`
+  );
 
   return response.data;
 }
@@ -99,4 +101,16 @@ export async function fetchStudentViewCourseDetailsByIdService(id) {
     `/api/v1/student/course/get/details/${id}`
   );
   return response?.data;
+}
+
+export async function createPaymentService(formdata) {
+  const { data } = await axiosInstance.post(`api/v1/student/order/create`, formdata);
+
+  return data;
+}
+
+export async function captureAndFinalizePaymentService(formdata) {
+  const { data } = await axiosInstance.post(`api/v1/student/order/capture`, formdata);
+
+  return data;
 }

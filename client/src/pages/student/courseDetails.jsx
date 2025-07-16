@@ -8,14 +8,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import VideoPlayer from "@/components/videoPlayer";
+import { useAuth } from "@/context/authContext";
 import { useStudent } from "@/context/studentContext";
-import { fetchStudentViewCourseDetailsByIdService } from "@/services";
+import { createPaymentService, fetchStudentViewCourseDetailsByIdService } from "@/services";
 import { CheckCircle, LockIcon, PlayCircleIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function StudentViewCourseDetails() {
   const { id } = useParams();
+  const auth = useAuth();
   const {
     studentViewCourseDetails,
     setStudentViewCourseDetails,
@@ -24,10 +26,44 @@ function StudentViewCourseDetails() {
   } = useStudent();
   const [openFreePreviewDialog, setOpenFreePreviewDialog] = useState(false);
   const [selectedPreviewLecture, setSelectedPreviewLecture] = useState(null);
+  const [approvalUrl, setApprovalUrl] = useState("")
 
   async function fetchStudentViewCourseDetails(id) {
     const response = await fetchStudentViewCourseDetailsByIdService(id);
     setStudentViewCourseDetails(response?.data);
+  }
+
+  async function handleCreatePayment() {
+    const paymentPayload = {
+      userId: auth?.auth?.user?._id,
+      username: auth?.auth?.user?.userName,
+      userEmail: auth?.auth?.user?.userEmail,
+      orderStatus: "pending",
+      paymentMethod: "paypal",
+      paymentStatus: "initiated",
+      orderDate: new Date(),
+      paymentId: "",
+      payerId: "",
+      instructorId: studentViewCourseDetails?.instructorId,
+      instructorName: studentViewCourseDetails?.instructorName,
+      courseImage: studentViewCourseDetails?.image,
+      courseTitle: studentViewCourseDetails?.title,
+      courseId: studentViewCourseDetails?._id,
+      coursePricing: studentViewCourseDetails?.pricing,
+    };
+
+    console.log(paymentPayload);
+
+    const response = await createPaymentService(paymentPayload)
+
+    if (response.success) {
+      sessionStorage.setItem("currentOrderId", JSON.stringify(response.data.orderId))
+      setApprovalUrl(response.data.approvalUrl)
+    }
+  }
+
+  if (approvalUrl !== '') {
+    window.location.href=approvalUrl
   }
 
   useEffect(() => {
@@ -171,7 +207,10 @@ function StudentViewCourseDetails() {
               : null}
           </div>
 
-          <Button className="bg-gray-300 cursor-pointer p-6 hover:bg-white w-full text-slate-900 text-xl font-bold my-4">
+          <Button
+            className="bg-gray-300 cursor-pointer p-6 hover:bg-white w-full text-slate-900 text-xl font-bold my-4"
+            onClick={handleCreatePayment}
+          >
             Buy Now
           </Button>
         </section>
