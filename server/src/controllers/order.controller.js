@@ -1,12 +1,21 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Order } from "../models/order.model.js";
 import { StudentCourses } from "../models/studentCourses.model.js";
-import paypal from "../helpers/paypal.js";
+import client from "../helpers/paypal.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Course } from "../models/course.model.js";
+import {
+	CheckoutPaymentIntent,
+	OrdersController,
+} from "@paypal/paypal-server-sdk";
+import { log } from "node:console";
 
+const ordersController = new OrdersController(client);
+
+// Create Order Controller
 const createOrder = asyncHandler(async (req, res) => {
+	//fetching order data from the request
 	const {
 		userId,
 		username,
@@ -25,140 +34,141 @@ const createOrder = asyncHandler(async (req, res) => {
 		coursePricing,
 	} = req.body;
 
-	const create_payment_json = {
-		intent: "sale",
-		payer: {
-			paymentMethod: "paypal",
-		},
-		redirect_urls: {
-			return_url: `${process.env.CLIENT_URL}/payment-return`,
-			cancel_url: `${process.env.CLIENT_URL}/payment-cancel`,
-		},
-		transactions: [
-			{
-				item_list: {
+	//creating payload to create paypal order
+	const collect = {
+		body: {
+			intent: CheckoutPaymentIntent.Capture,
+			purchaseUnits: [
+				{
+					amount: {
+						currencyCode: "USD",
+						value: String(coursePricing),
+						breakdown: {
+							itemTotal: {
+								currencyCode: "USD",
+								value: String(coursePricing),
+							},
+						},
+					},
 					items: [
 						{
 							name: courseTitle,
-							skew: courseId,
-							price: coursePricing,
-							currency: "USD",
-							quantity: 1,
+							unitAmount: {
+								currencyCode: "USD",
+								value: String(coursePricing),
+							},
+							quantity: "1",
+							description: courseTitle,
+							sku: courseId,
 						},
 					],
 				},
-				amount: {
-					currency: "USD",
-					total: coursePricing,
-				},
-				description: courseTitle,
-			},
-		],
+			],
+		},
+		prefer: "return=minimal",
 	};
 
-	paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
-		if (error) {
-			console.log(error);
-			return res
-				.status(500)
-				.json(new ApiError(500, "Error while creating paypal payment"));
-		}
+	
 
-		const newOrder = await Order.create({
-			userId,
-			username,
-			userEmail,
-			orderStatus,
-			paymentMethod,
-			paymentStatus,
-			orderDate,
-			paymentId,
-			payerId,
-			instructorId,
-			instructorName,
-			courseImage,
-			courseTitle,
-			courseId,
-			coursePricing,
-		});
+	//saving the order in the database
+	
+	//callin the paypal createorder api
+	const { body, ...httpResponse } = await ordersController.createOrder(collect);
+	// const newOrder = await Order.create({
+	// 	userId,
+	// 	username,
+	// 	userEmail,
+	// 	orderStatus,
+	// 	paymentMethod,
+	// 	paymentStatus,
+	// 	orderDate,
+	// 	paymentId,
+	// 	payerId,
+	// 	instructorId,
+	// 	instructorName,
+	// 	courseImage,
+	// 	courseTitle,
+	// 	courseId,
+	// 	coursePricing,
+	// });
 
-		const approvalUrl = paymentInfo.links.find(
-			(link) => link.rel == "approval_url"
-		);
-
-		res
-			.status(201)
-			.json(
-				new ApiResponse(
-					201,
-					{ approvalUrl, orderId: newOrder._id },
-					"Order creation successful"
-				)
-			);
-	});
+	//sending the response
+	return res.status(httpResponse.statusCode).json(JSON.parse(body))
 });
 
+//Capture Order Controller
 const captureFinalizeOrder = asyncHandler(async (req, res) => {
-	const { paymentId, payerId, orderId } = req.body;
+	//getting the orderId from request
+	const { orderID } = req.params;
+	
 
-	let order = await Order.findById(orderId);
+	//capturing the order status
+	const { body, ...httpResponse } = await ordersController.captureOrder(
+		{id:orderID, prefer: "return=minimal"}
+	)
+	
+	res.status(httpResponse.statusCode).json(JSON.parse(body));
+	
+	//TODO: update the order status in order model
+	//TODO: update the student courses model to push this course in the courses array
+	//TODO: update the students array of the course model
 
-	if (!order) {
-		return res.status(500).json(new ApiError(500, "order not found"));
-	}
+	// let order = await Order.findById(orderID);
 
-	order.paymentStatus = "paid";
-	order.orderStatus = "confirmed";
-	(order.paymentId = paymentId), (order.payerId = payerId);
+	// if (!order) {
+	// 	return res.status(500).json(new ApiError(500, "order not found"));
+	// }
 
-	const studentCourses = await StudentCourses.findOne({
-		userId: order.userId,
-	});
+	// order.paymentStatus = "paid";
+	// order.orderStatus = "confirmed";
+	// (order.paymentId = paymentId), (order.payerId = payerId);
 
-	if (studentCourses) {
-		studentCourses.courses.push({
-			courseId: order.courseId,
-			title: order.courseTitle,
-			instructorId: order.instructorId,
-			instructorName: order.instructorName,
-			dateOfPurchase: order.orderDate,
-			courseImage: order.courseImage,
-		});
+	// const studentCourses = await StudentCourses.findOne({
+	// 	userId: order.userId,
+	// });
 
-		await studentCourses.save();
-	} else {
-		const newStudentCourses = new StudentCourses({
-			userId: order.userId,
-			courses: [
-				{
-					courseId: order.courseId,
-					title: order.courseTitle,
-					instructorId: order.instructorId,
-					instructorName: order.instructorName,
-					dateOfPurchase: order.orderDate,
-					courseImage: order.courseImage,
-				},
-			],
-		});
+	// if (studentCourses) {
+	// 	studentCourses.courses.push({
+	// 		courseId: order.courseId,
+	// 		title: order.courseTitle,
+	// 		instructorId: order.instructorId,
+	// 		instructorName: order.instructorName,
+	// 		dateOfPurchase: order.orderDate,
+	// 		courseImage: order.courseImage,
+	// 	});
 
-		await newStudentCourses.save();
-	}
+	// 	await studentCourses.save();
+	// } else {
+	// 	const newStudentCourses = new StudentCourses({
+	// 		userId: order.userId,
+	// 		courses: [
+	// 			{
+	// 				courseId: order.courseId,
+	// 				title: order.courseTitle,
+	// 				instructorId: order.instructorId,
+	// 				instructorName: order.instructorName,
+	// 				dateOfPurchase: order.orderDate,
+	// 				courseImage: order.courseImage,
+	// 			},
+	// 		],
+	// 	});
 
-	//update the course schema  students
+	// 	await newStudentCourses.save();
+	// }
 
-	await Course.findByIdAndUpdate(order.courseId, {
-		$addToSet: {
-			students: {
-				studentId: order.userId,
-				studentName: order.username,
-				studentEmail: order.userEmail,
-				paidAmount: order.coursePricing,
-			},
-		},
-	});
+	// //update the course schema  students
 
-	res.status(200).json(new ApiResponse(200, order, "Order confirmed"));
+	// await Course.findByIdAndUpdate(order.courseId, {
+	// 	$addToSet: {
+	// 		students: {
+	// 			studentId: order.userId,
+	// 			studentName: order.username,
+	// 			studentEmail: order.userEmail,
+	// 			paidAmount: order.coursePricing,
+	// 		},
+	// 	},
+	// });
+
 });
-
 
 export { captureFinalizeOrder, createOrder };

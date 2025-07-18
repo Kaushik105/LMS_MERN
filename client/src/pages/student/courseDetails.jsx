@@ -10,7 +10,12 @@ import {
 import VideoPlayer from "@/components/videoPlayer";
 import { useAuth } from "@/context/authContext";
 import { useStudent } from "@/context/studentContext";
-import { createPaymentService, fetchStudentViewCourseDetailsByIdService } from "@/services";
+import {
+  createPaymentService,
+  fetchStudentViewCourseDetailsByIdService,
+} from "@/services";
+import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
+import axios from "axios";
 import { CheckCircle, LockIcon, PlayCircleIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -26,14 +31,26 @@ function StudentViewCourseDetails() {
   } = useStudent();
   const [openFreePreviewDialog, setOpenFreePreviewDialog] = useState(false);
   const [selectedPreviewLecture, setSelectedPreviewLecture] = useState(null);
-  const [approvalUrl, setApprovalUrl] = useState("")
+  const [approvalUrl, setApprovalUrl] = useState("");
+
+  // paypal inital Options
+  const initialOptions = {
+    "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,
+    "enable-funding": "venmo",
+    "disable-funding": "",
+    "buyer-country": "US",
+    currency: "USD",
+    "data-page-type": "product-details",
+    components: "buttons",
+    "data-sdk-integration-source": "developer-studio",
+  };
 
   async function fetchStudentViewCourseDetails(id) {
     const response = await fetchStudentViewCourseDetailsByIdService(id);
     setStudentViewCourseDetails(response?.data);
   }
 
-  async function handleCreatePayment() {
+  async function createOrder() {
     const paymentPayload = {
       userId: auth?.auth?.user?._id,
       username: auth?.auth?.user?.userName,
@@ -51,19 +68,76 @@ function StudentViewCourseDetails() {
       courseId: studentViewCourseDetails?._id,
       coursePricing: studentViewCourseDetails?.pricing,
     };
+    try {
+      const response = await fetch(
+        "http://localhost:3000/api/v1/student/order/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // use the "body" param to optionally pass additional order information
+          // like product ids and quantities
+          body: JSON.stringify(paymentPayload),
+        }
+      );
 
-    console.log(paymentPayload);
+      const orderData = await response.json();
+      console.log(orderData, "create");
 
-    const response = await createPaymentService(paymentPayload)
+      if (orderData.id) {
+        return orderData.id;
+      } else {
+        const errorDetail = orderData?.details?.[0];
+        const errorMessage = errorDetail
+          ? `${errorDetail.issue} ${errorDetail.description} (${orderData.debug_id})`
+          : JSON.stringify(orderData);
 
-    if (response.success) {
-      sessionStorage.setItem("currentOrderId", JSON.stringify(response.data.orderId))
-      setApprovalUrl(response.data.approvalUrl)
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage(`Could not initiate PayPal Checkout...${error}`);
+      throw error;
     }
   }
 
-  if (approvalUrl !== '') {
-    window.location.href=approvalUrl
+  async function captureOrder(data, actions) {
+    try {
+      const response = await fetch(`http://localhost:3000/api/v1/student/order/${data.orderID}/capture`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const orderData = await response?.json();
+      // Three cases to handle:
+      //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
+      //   (2) Other non-recoverable errors -> Show a failure message
+      //   (3) Successful transaction -> Show confirmation or thank you message
+
+;
+
+      const errorDetail = orderData?.details?.[0];
+
+      if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
+        // (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
+        // recoverable state, per https://developer.paypal.com/docs/checkout/standard/customize/handle-funding-failures/
+        return actions.restart();
+      } else if (errorDetail) {
+        // (2) Other non-recoverable errors -> Show a failure message
+        throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
+      } else {
+        // (3) Successful transaction -> Show confirmation or thank you message
+        // Or go to another URL:  actions.redirect('thank_you.html');
+        // actions.redirect("http://localhost:5173/student/payment-return")
+        return actions.redirect("http://localhost:5173/student/payment-return")
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage(`Sorry, your transaction could not be processed...${error}`);
+    }
   }
 
   useEffect(() => {
@@ -207,12 +281,20 @@ function StudentViewCourseDetails() {
               : null}
           </div>
 
-          <Button
-            className="bg-gray-300 cursor-pointer p-6 hover:bg-white w-full text-slate-900 text-xl font-bold my-4"
-            onClick={handleCreatePayment}
-          >
-            Buy Now
-          </Button>
+          <div className="App">
+            <PayPalScriptProvider options={initialOptions}>
+              <PayPalButtons
+                style={{
+                  shape: "rect",
+                  layout: "vertical",
+                  color: "gold",
+                  label: "buynow",
+                }}
+                createOrder={createOrder}
+                onApprove={captureOrder}
+              />
+            </PayPalScriptProvider>
+          </div>
         </section>
       </div>
       <Dialog

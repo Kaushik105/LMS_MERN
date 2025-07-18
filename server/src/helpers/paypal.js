@@ -1,9 +1,18 @@
-import paypal from "paypal-rest-sdk"
+import { Client, Environment, LogLevel } from "@paypal/paypal-server-sdk"
 
-paypal.configure({
-	mode: "sandbox",
-	client_id: process.env.PAYPAL_CLIENT_ID,
-    client_secret: process.env.PAYPAL_SECRET_ID
+
+const client = new Client({
+	clientCredentialsAuthCredentials: {
+		oAuthClientId: process.env.PAYPAL_CLIENT_ID,
+		oAuthClientSecret: process.env.PAYPAL_CLIENT_SECRET,
+	},
+	timeout: 0,
+	environment: Environment.Sandbox,
+	logging: {
+		logLevel: LogLevel.Info,
+		logRequest: { logBody: true },
+		logResponse: { logHeaders: true },
+	},
 });
 
-export default paypal
+export default client

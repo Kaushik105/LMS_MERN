@@ -8,6 +8,8 @@ import RouteGuard from "./components/routeGuard";
 import AddNewCourse from "./pages/instructor/addNewCourse";
 import StudentViewCoursesPage from "./pages/student/courses";
 import StudentViewCourseDetails from "./pages/student/courseDetails";
+import PaymentReturnPage from "./pages/student/paymentReturn";
+import PaymentCancelPage from "./pages/student/paymentCancel";
 
 function App() {
   const { auth } = useAuth();
@@ -68,6 +70,8 @@ function App() {
           <Route path="" element={<StudentHomePage />} />
           <Route path="home" element={<StudentHomePage />} />
           <Route path="courses" element={<StudentViewCoursesPage />} />
+          <Route path="payment-return" element={<PaymentReturnPage />} />
+          <Route path="payment-cancel" element={<PaymentCancelPage />} />
           <Route
             path="course-details/:id"
             element={<StudentViewCourseDetails />}
