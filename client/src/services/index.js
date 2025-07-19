@@ -103,14 +103,16 @@ export async function fetchStudentViewCourseDetailsByIdService(id) {
   return response?.data;
 }
 
-export async function createPaymentService(formdata) {
-  const { data } = await axiosInstance.post(`api/v1/student/order/create`, formdata);
+export async function getIfCourseIsPurchasedService(id, courseId) {
+  const { data } = await axiosInstance.get(
+    `api/v1/student/course-status/${id}/${courseId}`
+  );
 
   return data;
 }
 
-export async function captureAndFinalizePaymentService(formdata) {
-  const { data } = await axiosInstance.post(`api/v1/student/order/capture`, formdata);
+export async function getPurchasedCoursesService(id) {
+  const { data } = await axiosInstance.get(`api/v1/student/course-status/bought-courses/${id}`);
 
   return data;
 }

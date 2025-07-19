@@ -6,6 +6,7 @@ import mediaRouter from "./routes/media.route.js";
 import instrtuctorCourseRouter from "./routes/course.route.js";
 import studentViewRotuer from "./routes/studentView.route.js";
 import studentViewOrderRotuer from "./routes/order.route.js";
+import studentCoursesRouter from "./routes/studentCourses.route.js"
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/v1/instructor/course", instrtuctorCourseRouter);
 //TODO: fix the error in the route
 app.use("/api/v1/student/course", studentViewRotuer);
 app.use("/api/v1/student/order", studentViewOrderRotuer);
+app.use("/api/v1/student/course-status", studentCoursesRouter);
 
 app.use(errorHandler);
 export default app;

@@ -62,7 +62,6 @@ function AddNewCourse() {
 
       if (item.freePreview) {
         hasFreePreview = true;
-        console.log("has free preview");
       }
     }
     return hasFreePreview;

@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { filterOptions, sortOptions } from "@/config";
+import { useAuth } from "@/context/authContext";
 import { useStudent } from "@/context/studentContext";
-import { fetchStudentViewCourseListService } from "@/services";
+import { fetchStudentViewCourseListService, getIfCourseIsPurchasedService } from "@/services";
 import { ArrowUpDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -36,6 +37,7 @@ function StudentViewCoursesPage() {
   const [filters, setFilters] = useState(() => {
     return JSON.parse(sessionStorage.getItem("filters")) || {};
   });
+  const {auth} = useAuth()
   const navigate = useNavigate();
 
   function handleCheckedChange(sectionId, getCurrentOption) {
@@ -72,8 +74,11 @@ function StudentViewCoursesPage() {
     setStudentViewCourseList(response.data);
   }
 
-  function handleNavigateToCourseDetails(courseId) {
-    navigate(`/student/course-details/${courseId}`);
+  async function handleNavigateToCourseDetails(courseId) {
+    const response = await getIfCourseIsPurchasedService(auth?.user?._id, courseId);
+    response?.data?.isPurchased
+      ? navigate(`/student/course-progress/${courseId}`)
+      : navigate(`/student/course-details/${courseId}`);
   }
 
   useEffect(() => {

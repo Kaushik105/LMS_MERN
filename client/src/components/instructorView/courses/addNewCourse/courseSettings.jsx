@@ -24,7 +24,6 @@ function CourseSettings() {
           courseImageFormData,
           setMediaUploadProgressPercentage
         );
-        console.log(result);
 
         if (result?.success) {
           let cpyCourseLandingFormData = { ...courseLandingFormData };

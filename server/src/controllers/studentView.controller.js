@@ -72,6 +72,8 @@ const getStudentViewCourseDetails = asyncHandler(async (req, res) => {
 		.json(new ApiResponse(200, course, "course details found"));
 });
 
+
+
 export {
 	getStudentViewCourseDetails,
 	getStudentViewCourseList,

@@ -10,19 +10,17 @@ import {
 import VideoPlayer from "@/components/videoPlayer";
 import { useAuth } from "@/context/authContext";
 import { useStudent } from "@/context/studentContext";
-import {
-  createPaymentService,
-  fetchStudentViewCourseDetailsByIdService,
-} from "@/services";
+import { fetchStudentViewCourseDetailsByIdService, getIfCourseIsPurchasedService } from "@/services";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import axios from "axios";
 import { CheckCircle, LockIcon, PlayCircleIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 function StudentViewCourseDetails() {
   const { id } = useParams();
-  const auth = useAuth();
+  const {auth} = useAuth();
+  const navigate=useNavigate()
   const {
     studentViewCourseDetails,
     setStudentViewCourseDetails,
@@ -31,13 +29,15 @@ function StudentViewCourseDetails() {
   } = useStudent();
   const [openFreePreviewDialog, setOpenFreePreviewDialog] = useState(false);
   const [selectedPreviewLecture, setSelectedPreviewLecture] = useState(null);
-  const [approvalUrl, setApprovalUrl] = useState("");
+
+  //to store the created orderId temporarily
+  let newOrderId = null;
 
   // paypal inital Options
   const initialOptions = {
     "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID,
-    "enable-funding": "venmo",
-    "disable-funding": "",
+    "enable-funding": "",
+    "disable-funding": "venmo,paylater,card",
     "buyer-country": "US",
     currency: "USD",
     "data-page-type": "product-details",
@@ -49,6 +49,22 @@ function StudentViewCourseDetails() {
     const response = await fetchStudentViewCourseDetailsByIdService(id);
     setStudentViewCourseDetails(response?.data);
   }
+
+    async function getCurrentCoursePurchaseStatus() {
+      console.log("run");
+      const response = await getIfCourseIsPurchasedService(auth?.user?._id, id);
+      if (response?.data?.isPurchased) {
+        navigate(`/student/course-progress/${studentViewCourseDetailsId}`)
+      }
+      
+    }
+    console.log(studentViewCourseDetailsId);
+    
+ if (studentViewCourseDetailsId) {
+  
+   getCurrentCoursePurchaseStatus()
+ }
+
 
   async function createOrder() {
     const paymentPayload = {
@@ -83,7 +99,7 @@ function StudentViewCourseDetails() {
       );
 
       const orderData = await response.json();
-      console.log(orderData, "create");
+      newOrderId = orderData.newOrderId;
 
       if (orderData.id) {
         return orderData.id;
@@ -103,38 +119,39 @@ function StudentViewCourseDetails() {
   }
 
   async function captureOrder(data, actions) {
+    const captureOrderPayload = {
+      paymentId: data.paymentID,
+      payerId: data.payerID,
+      newOrderId,
+    };
+
     try {
-      const response = await fetch(`http://localhost:3000/api/v1/student/order/${data.orderID}/capture`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `http://localhost:3000/api/v1/student/order/${data.orderID}/capture`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(captureOrderPayload),
+        }
+      );
 
       const orderData = await response?.json();
-      // Three cases to handle:
-      //   (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-      //   (2) Other non-recoverable errors -> Show a failure message
-      //   (3) Successful transaction -> Show confirmation or thank you message
 
-;
 
       const errorDetail = orderData?.details?.[0];
 
       if (errorDetail?.issue === "INSTRUMENT_DECLINED") {
-        // (1) Recoverable INSTRUMENT_DECLINED -> call actions.restart()
-        // recoverable state, per https://developer.paypal.com/docs/checkout/standard/customize/handle-funding-failures/
         return actions.restart();
       } else if (errorDetail) {
-        // (2) Other non-recoverable errors -> Show a failure message
+        actions.redirect("http://localhost:5173/student/payment-cancel")
         throw new Error(`${errorDetail.description} (${orderData.debug_id})`);
       } else {
-        // (3) Successful transaction -> Show confirmation or thank you message
-        // Or go to another URL:  actions.redirect('thank_you.html');
-        // actions.redirect("http://localhost:5173/student/payment-return")
         return actions.redirect("http://localhost:5173/student/payment-return")
       }
     } catch (error) {
+      actions.redirect("http://localhost:5173/student/payment-cancel")
       console.error(error);
       setMessage(`Sorry, your transaction could not be processed...${error}`);
     }

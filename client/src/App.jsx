@@ -10,6 +10,8 @@ import StudentViewCoursesPage from "./pages/student/courses";
 import StudentViewCourseDetails from "./pages/student/courseDetails";
 import PaymentReturnPage from "./pages/student/paymentReturn";
 import PaymentCancelPage from "./pages/student/paymentCancel";
+import StudentCoursesPage from "./pages/student/studentCourses";
+import StudentCourseProgressPage from "./pages/student/studentCourseProgress";
 
 function App() {
   const { auth } = useAuth();
@@ -72,6 +74,8 @@ function App() {
           <Route path="courses" element={<StudentViewCoursesPage />} />
           <Route path="payment-return" element={<PaymentReturnPage />} />
           <Route path="payment-cancel" element={<PaymentCancelPage />} />
+          <Route path="my-courses" element={<StudentCoursesPage />} />
+          <Route path="course-progress/:id" element={<StudentCourseProgressPage />} />
           <Route
             path="course-details/:id"
             element={<StudentViewCourseDetails />}

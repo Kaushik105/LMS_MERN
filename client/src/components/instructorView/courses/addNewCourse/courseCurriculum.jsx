@@ -52,7 +52,6 @@ function CourseCurriculum() {
           videoFormdata,
           setMediaUploadProgressPercentage
         );
-        console.log(result);
 
         if (result?.success) {
           let cpyFormData = [...courseCurriculumFormData];
