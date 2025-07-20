@@ -27,7 +27,7 @@ console.log(boughtCourses);
       <div className="grid grid-cols-1 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {boughtCourses && boughtCourses.length >= 0
           ? boughtCourses.map((course) => (
-              <div>
+              <div key={course._id}>
                 {" "}
                 <Card  key={course.courseId}>
                   <CardContent>

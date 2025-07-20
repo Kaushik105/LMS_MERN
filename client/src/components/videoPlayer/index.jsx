@@ -13,7 +13,13 @@ import {
   VolumeX,
 } from "lucide-react";
 
-function VideoPlayer({ width = "100%", height = "100%", url }) {
+function VideoPlayer({
+  width = "100%",
+  height = "100%",
+  url,
+  onProgressUpdate,
+  progressData,
+}) {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [muted, setMuted] = useState(false);
@@ -44,7 +50,13 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
     playerRef?.current?.seekTo(playerRef?.current?.getCurrentTime() - 5);
   }
   function handleToggleMute() {
-    setMuted(!muted);
+    setMuted((prev) => !muted);
+
+    if (volume !== 0) {
+      setVolume(0);
+    } else if (muted) {
+      setVolume(0.5);
+    }
   }
   function handleSeekChange(newValue) {
     setPlayed(newValue[0]);
@@ -57,6 +69,11 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
 
   function handleVolumeChange(newValue) {
     setVolume(newValue[0]);
+    if (newValue[0] === 0) {
+      setMuted(true);
+    } else if (muted && newValue[0] !== 0) {
+      setMuted(false);
+    }
   }
 
   function pad(string) {
@@ -76,20 +93,17 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
     }
   }
 
-  function handleMouseMove(
-
-  ) {
-    setShowControls(true)
-    clearTimeout(controlsTimeoutRef?.current)
+  function handleMouseMove() {
+    setShowControls(true);
+    clearTimeout(controlsTimeoutRef?.current);
     controlsTimeoutRef.current = setTimeout(() => {
-      setShowControls(false)
+      setShowControls(false);
     }, 3000);
   }
 
   const handleFullScreen = useCallback(() => {
     if (!isFullScreen) {
       if (playerContainerRef?.current?.requestFullscreen) {
-        
         playerContainerRef?.current?.requestFullscreen();
       }
     } else {
@@ -100,33 +114,41 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
   }, [isFullScreen]);
 
   useEffect(() => {
-    const handleFullScreenChange = () => { 
-      setIsFullScreen(document.fullscreenElement)
-     }
+    const handleFullScreenChange = () => {
+      setIsFullScreen(document.fullscreenElement);
+    };
 
-     document.addEventListener("fullscreenchange", handleFullScreenChange)
-  
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+
     return () => {
-      document.removeEventListener("fullscreenchange", handleFullScreenChange)
-    }
-  }, [])
-  
+      document.removeEventListener("fullscreenchange", handleFullScreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    onProgressUpdate((prev) => ({
+      ...progressData,
+      progress: played,
+    }));
+  }, [played]);
 
   return (
     <div
       ref={playerContainerRef}
-      className={`relative bg-gray-900 rounded-lg overflow-hidden shadow-2xl transition-all duration-300 ease-in-out ${
+      className={`relative bg-gray-900 rounded-lg w-full h-full overflow-hidden shadow-2xl transition-all duration-300 ease-in-out ${
         isFullScreen ? "w-screen h-screen" : ""
       }`}
       style={{ width, height }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => { setShowControls(false) }}
+      onMouseLeave={() => {
+        setShowControls(false);
+      }}
     >
       <ReactPlayer
         ref={playerRef}
         className={"absolute top-0 left-0"}
-        width={"100%"}
         height={"100%"}
+        width={"100%"}
         url={url}
         playing={playing}
         volume={volume}
@@ -146,7 +168,9 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
             onValueChange={(value) => {
               handleSeekChange([value[0] / 100]);
             }}
-            onValueCommit={handleSeekMouseUp}
+            onValueCommit={() => {
+              handleSeekMouseUp;
+            }}
             className={"w-full mb-4"}
           />
           <div className="flex items-center justify-between">
@@ -225,5 +249,3 @@ function VideoPlayer({ width = "100%", height = "100%", url }) {
 }
 
 export default VideoPlayer;
-
-// start from 4.46

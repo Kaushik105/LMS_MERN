@@ -58,10 +58,8 @@ function StudentViewCourseDetails() {
       }
       
     }
-    console.log(studentViewCourseDetailsId);
     
  if (studentViewCourseDetailsId) {
-  
    getCurrentCoursePurchaseStatus()
  }
 
