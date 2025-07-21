@@ -51,7 +51,6 @@ function StudentViewCourseDetails() {
   }
 
     async function getCurrentCoursePurchaseStatus() {
-      console.log("run");
       const response = await getIfCourseIsPurchasedService(auth?.user?._id, id);
       if (response?.data?.isPurchased) {
         navigate(`/student/course-progress/${studentViewCourseDetailsId}`)

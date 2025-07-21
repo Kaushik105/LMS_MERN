@@ -125,7 +125,7 @@ function VideoPlayer({
     };
   }, []);
 
-  useEffect(() => {
+  useEffect(() => {    
     onProgressUpdate((prev) => ({
       ...progressData,
       progress: played,
@@ -135,7 +135,7 @@ function VideoPlayer({
   return (
     <div
       ref={playerContainerRef}
-      className={`relative bg-gray-900 rounded-lg w-full h-full overflow-hidden shadow-2xl transition-all duration-300 ease-in-out ${
+      className={`relative bg-black rounded-lg w-full h-full overflow-hidden shadow-2xl transition-all duration-300 ease-in-out ${
         isFullScreen ? "w-screen h-screen" : ""
       }`}
       style={{ width, height }}

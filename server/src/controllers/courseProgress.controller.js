@@ -48,7 +48,6 @@ const markCurrentLecture = asyncHandler(async (req, res) => {
 
 	const updatedProgress = await progress.save();
 
-	console.log(progress.lecturesProgress.length, course.curriculum.length);
 	return res
 		.status(200)
 		.json(new ApiResponse(200, updatedProgress, "course progress updated"));
@@ -63,6 +62,7 @@ const getCurrentCourseProgress = asyncHandler(async (req, res) => {
 		"courses.courseId": courseId,
 	}).lean();
 
+	//checking if this course is purchased by the user
 	const isCurrentCourseIsPurchasedByCurrentUser =
 		studentPurchasedCourse?.courses?.findIndex(
 			(item) => item.courseId === courseId
@@ -86,6 +86,7 @@ const getCurrentCourseProgress = asyncHandler(async (req, res) => {
 
 	const courseDetails = await Course.findById(courseId);
 
+	//creating course progress document if there is none
 	if (!currentCourseProgress) {
 		const newCourseProgress = await CourseProgress.create({
 			userId,
@@ -94,6 +95,7 @@ const getCurrentCourseProgress = asyncHandler(async (req, res) => {
 			lecturesProgress: [],
 		});
 
+		//sending the response
 		return res
 			.status(200)
 			.json(
@@ -116,6 +118,28 @@ const getCurrentCourseProgress = asyncHandler(async (req, res) => {
 });
 
 //reset course progress
-const resetProgress = asyncHandler(async (req, res) => {});
+const resetProgress = asyncHandler(async (req, res) => {
+	const { userId, courseId } = req.body;
+	const progress = await CourseProgress.findOneAndUpdate(
+		{
+			userId,
+			courseId,
+		},
+		{
+			completed: false,
+			lecturesProgress: [],
+		}
+	);
 
-export { getCurrentCourseProgress, markCurrentLecture };
+	if (!progress) {
+		return res
+			.status(500)
+			.json(new ApiError(500, "Course progress reset failed"));
+	}
+
+	return res
+		.status(200)
+		.json(new ApiResponse(200, progress, "Course progress reset successful"));
+});
+
+export { getCurrentCourseProgress, markCurrentLecture, resetProgress };

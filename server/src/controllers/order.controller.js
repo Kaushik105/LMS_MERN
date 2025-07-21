@@ -147,7 +147,7 @@ const captureFinalizeOrder = asyncHandler(async (req, res) => {
 			
 		}
 	} else {
-		console.log("NOt exists");
+		console.log("Not exists");
 		
 		const newStudentCourses = new StudentCourses({
 			userId: order.userId,

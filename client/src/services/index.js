@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/api/axiosInstance";
-import { AxiosError } from "axios";
+import { AxiosError } from "axios";;
 
 export async function registerService(formData) {
   const response = await axiosInstance.post("api/v1/auth/register", {
@@ -12,7 +12,6 @@ export async function registerService(formData) {
 
 export async function loginService(formData) {
   const response = await axiosInstance.post("api/v1/auth/login", formData);
-
   return response.data;
 }
 
@@ -128,11 +127,19 @@ export async function getCurrentCourseProgressService(userId, courseId) {
   return data;
 }
 
-export async function markCurrentLectureService(formData) {
-  
+export async function updateCurrentLectureProgressService(formData) {
   const { data } = await axiosInstance.post(
     "/api/v1/student/course-progress/post",
     formData
+  );
+
+  return data;
+}
+
+export async function resetCourseProgressService(formdata) {
+  const { data } = await axiosInstance.post(
+    "/api/v1/student/course-progress/reset",
+    formdata
   );
 
   return data;

@@ -16,7 +16,6 @@ function StudentCoursesPage() {
     setBoughtCourses(prev => [...response.data])
     
   } 
-console.log(boughtCourses);
 
   useEffect(() => { 
     getMyCourses()
