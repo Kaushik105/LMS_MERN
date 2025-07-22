@@ -9,7 +9,6 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import { BookOpenText, ChartColumnDecreasing, LogOut } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
-
 function InstructorDashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { resetCredentials } = useAuth();
@@ -41,7 +40,6 @@ function InstructorDashboardPage() {
     if (response?.success) {
       setInstructorCoursesList(response?.data);
     }
-
   }
 
   useEffect(() => {
@@ -57,7 +55,7 @@ function InstructorDashboardPage() {
   }
 
   return (
-    <div className="flex w-full min-h-screen bg-gray-100">
+    <div className="flex w-full max-w-[1920px] mx-auto min-h-screen bg-gray-100">
       <aside className="w-70 h-screen bg-white">
         <div className="p-4">
           <h1 className="text-2xl font-bold w-full">Instructor Dashboard</h1>
@@ -82,7 +80,7 @@ function InstructorDashboardPage() {
           ))}
         </nav>
       </aside>
-      <main className="flex-1 p-4">
+      <main className="flex-1 p-2 lg:p-4">
         <h1 className="text-3xl m-3 font-bold">Dashboard</h1>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {instructorMenuItems.map((menuItem) => (

@@ -126,10 +126,12 @@ function VideoPlayer({
   }, []);
 
   useEffect(() => {    
-    onProgressUpdate((prev) => ({
-      ...progressData,
-      progress: played,
-    }));
+    if (typeof onProgressUpdate === "function") {
+      onProgressUpdate((prev) => ({
+        ...progressData,
+        progress: played,
+      }));
+    }
   }, [played]);
 
   return (
