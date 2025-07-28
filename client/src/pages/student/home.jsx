@@ -32,7 +32,7 @@ function StudentHomePage() {
       category: [category],
     };
     sessionStorage.setItem("filters", JSON.stringify(filters));
-    navigate("/student/courses")
+    navigate("/student/courses");
   }
 
   async function getStudentViewCourseList() {

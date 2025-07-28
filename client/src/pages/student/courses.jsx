@@ -9,13 +9,51 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { CourseSkeleton, SVGSkeleton } from "@/components/ui/skeleton";
 import { filterOptions, sortOptions } from "@/config";
 import { useAuth } from "@/context/authContext";
 import { useStudent } from "@/context/studentContext";
-import { fetchStudentViewCourseListService, getIfCourseIsPurchasedService } from "@/services";
+import {
+  fetchStudentViewCourseListService,
+  getIfCourseIsPurchasedService,
+} from "@/services";
 import { ArrowUpDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+
+//loading Skeleton
+const LoadingSkeleton = () => (
+  <>
+    <div className="p-2 flex gap-4">
+      <div className="w-80 h-52">
+        <SVGSkeleton className="object-cover w-full h-full" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <h1>
+          <CourseSkeleton className="w-[232px] max-w-full" />
+        </h1>
+        <span className="flex items-center gap-2">
+          <CourseSkeleton className="w-[264px] max-w-full" />
+          <div>
+            <CourseSkeleton className="w-[136px] max-w-full" />
+          </div>
+          <div>
+            <CourseSkeleton className="w-[120px] max-w-full" />
+          </div>
+        </span>
+        <div className="mt-1.5">
+          <CourseSkeleton className="w-[80px] max-w-full" />
+        </div>
+        <div>
+          <CourseSkeleton className="w-[64px] max-w-full" />
+        </div>
+        <div className="mt-2.5">
+          <CourseSkeleton className="w-[40px] max-w-full" />
+        </div>
+      </div>
+    </div>
+  </>
+);
 
 function createSearchParamHelper(filters) {
   const queryParams = [];
@@ -24,6 +62,8 @@ function createSearchParamHelper(filters) {
       if (Array.isArray(value) && value.length > 0) {
         const paramValue = value.join(",");
         queryParams.push(`${key}=${encodeURIComponent(paramValue)}`);
+      } else if (typeof value === "string") {
+        queryParams.push(`${key}=${encodeURIComponent(value)}`);
       }
     }
     return queryParams.join("&");
@@ -35,9 +75,26 @@ function StudentViewCoursesPage() {
   const { studentViewCourseList, setStudentViewCourseList } = useStudent();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState(() => {
+    if (searchParams.size > 0) {
+      let filters = {};
+      for (const [key, value] of searchParams.entries()) {
+        let index = Object.entries(filterOptions).findIndex(
+          (item) => item[0] == key
+        );
+        if (index < 0) {
+          return JSON.parse(sessionStorage.getItem("filters")) || {};
+        }
+      }
+      for (const [key, value] of searchParams.entries()) {
+        filters[key] = [...value.split(",")];
+        sessionStorage.setItem("filters", JSON.stringify(filters));
+      }
+    }
     return JSON.parse(sessionStorage.getItem("filters")) || {};
   });
-  const {auth} = useAuth()
+
+  const [loading, setLoading] = useState(false);
+  const { auth } = useAuth();
   const navigate = useNavigate();
 
   function handleCheckedChange(sectionId, getCurrentOption) {
@@ -72,17 +129,26 @@ function StudentViewCoursesPage() {
       `?${queryString}&sortBy=${sort}`
     );
     setStudentViewCourseList(response.data);
+    setLoading(false);
   }
 
   async function handleNavigateToCourseDetails(courseId) {
-    const response = await getIfCourseIsPurchasedService(auth?.user?._id, courseId);
+    const response = await getIfCourseIsPurchasedService(
+      auth?.user?._id,
+      courseId
+    );
     response?.data?.isPurchased
       ? navigate(`/student/course-progress/${courseId}`)
       : navigate(`/student/course-details/${courseId}`);
   }
 
   useEffect(() => {
-    getFilteredCourses();
+    setLoading(true);
+    const debounce = setTimeout(() => {
+      getFilteredCourses();
+    }, 300); // Debounce 300ms
+
+    return () => clearTimeout(debounce);
   }, [filters, sort]);
 
   return (
@@ -124,11 +190,7 @@ function StudentViewCoursesPage() {
                   <span key={optionItem.id} className="flex gap-2 items-center">
                     <Checkbox
                       id={optionItem.id}
-                      checked={
-                        filters &&
-                        filters[item]?.length > -1 &&
-                        filters[item].indexOf(optionItem.id) > -1
-                      }
+                      checked={filters[item]?.includes(optionItem?.id) || false}
                       onCheckedChange={(value) => {
                         handleCheckedChange(item, optionItem.id);
                       }}
@@ -143,7 +205,9 @@ function StudentViewCoursesPage() {
           </div>
         </aside>
         <div className="flex-1 flex flex-col gap-3 p-1">
-          {studentViewCourseList && studentViewCourseList.length > -1 ? (
+          {!loading &&
+          studentViewCourseList &&
+          studentViewCourseList.length > 0 ? (
             studentViewCourseList.map((item) => (
               <Card
                 onClick={() => {
@@ -180,8 +244,14 @@ function StudentViewCoursesPage() {
                 </CardContent>
               </Card>
             ))
+          ) : loading ? (
+            <div className="flex w-full h-full">
+              <LoadingSkeleton />
+            </div>
           ) : (
-            <h3>No courses found</h3>
+            <h3 className="text-xl text-center font-semibold">
+              No courses found
+            </h3>
           )}
         </div>
       </div>
