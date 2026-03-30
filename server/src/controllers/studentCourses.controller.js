@@ -6,6 +6,10 @@ import { StudentCourses } from "../models/studentCourses.model.js";
 const getIfCourseIsPurchased = asyncHandler(async (req, res) => {
 	const { id, courseId } = req.params;
 
+	if (String(req.user?._id) !== String(id)) {
+		throw new ApiError(403, "Forbidden request");
+	}
+
 	const isCourseAlreadyPurchased = await StudentCourses.findOne({
 		userId: id,
 		"courses.courseId": courseId,
@@ -36,10 +40,14 @@ const getIfCourseIsPurchased = asyncHandler(async (req, res) => {
 const getPurchasedCourses = asyncHandler(async (req, res) => {
 	const { id } = req.params;
 
+	if (String(req.user?._id) !== String(id)) {
+		throw new ApiError(403, "Forbidden request");
+	}
+
 	const boughtCourses = await StudentCourses.findOne({ userId: id });
 
 	if (!boughtCourses) {
-		return res.status(200).json(new ApiResponse(200, {}, "No courses found"));
+		return res.status(200).json(new ApiResponse(200, [], "No courses found"));
 	}
 	return res
 		.status(200)

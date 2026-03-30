@@ -50,17 +50,15 @@ function instructorDashboard() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell>Rohan Roy</TableCell>
-              <TableCell>rohan@gmail.com</TableCell>
-              <TableCell className={"text-center"}>
-                <li>Course 1</li>
-                <li>Course 2</li>
-                <li>Course 3</li>
-                <li>Course 4</li>
-                <li>Course 5</li>
-              </TableCell>
-            </TableRow>
+            {instructorCoursesList?.flatMap((course) =>
+              (course.students || []).map((student, index) => (
+                <TableRow key={`${course._id}-${student.studentId || index}`}>
+                  <TableCell>{student.studentName}</TableCell>
+                  <TableCell>{student.studentEmail}</TableCell>
+                  <TableCell className={"text-center"}>{course.title}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

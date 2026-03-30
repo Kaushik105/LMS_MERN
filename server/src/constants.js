@@ -1,1 +1,1 @@
-export const DB_NAME="LMS_MERN"
+export const DB_NAME="lms_mern"

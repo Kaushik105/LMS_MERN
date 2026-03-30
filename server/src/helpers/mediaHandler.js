@@ -22,7 +22,7 @@ const handleUpload = asyncHandler(async (req, res) => {
 const handleBulkUpload = asyncHandler(async (req, res) => {
 	const filesPath = req?.files?.map((fileItem) => fileItem.path);
 
-	if (!(filesPath || Array.isArray(filesPath) || filesPath.length <= 0)) {
+	if (!filesPath || !Array.isArray(filesPath) || filesPath.length === 0) {
 		throw new ApiError(400, "files path unavailable");
 	}
 

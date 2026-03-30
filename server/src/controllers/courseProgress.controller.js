@@ -9,6 +9,10 @@ import { Course } from "../models/course.model.js";
 const markCurrentLecture = asyncHandler(async (req, res) => {
 	const { userId, courseId, completedLecture } = req.body;
 
+	if (String(req.user?._id) !== String(userId)) {
+		throw new ApiError(403, "Forbidden request");
+	}
+
 	const progress = await CourseProgress.findOne({
 		userId,
 		courseId,
@@ -56,6 +60,10 @@ const markCurrentLecture = asyncHandler(async (req, res) => {
 // get current course progress if it available
 const getCurrentCourseProgress = asyncHandler(async (req, res) => {
 	const { userId, courseId } = req.params;
+
+	if (String(req.user?._id) !== String(userId)) {
+		throw new ApiError(403, "Forbidden request");
+	}
 
 	const studentPurchasedCourse = await StudentCourses.findOne({
 		userId,
@@ -120,6 +128,10 @@ const getCurrentCourseProgress = asyncHandler(async (req, res) => {
 //reset course progress
 const resetProgress = asyncHandler(async (req, res) => {
 	const { userId, courseId } = req.body;
+
+	if (String(req.user?._id) !== String(userId)) {
+		throw new ApiError(403, "Forbidden request");
+	}
 	const progress = await CourseProgress.findOneAndUpdate(
 		{
 			userId,

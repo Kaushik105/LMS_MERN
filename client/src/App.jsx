@@ -28,6 +28,15 @@ function App() {
               user={auth.user}
             />
           }
+        /><Route
+          path="/"
+          element={
+            <RouteGuard
+              authenticated={auth.authenticated}
+              element={<AuthPage />}
+              user={auth.user}
+            />
+          }
         />
         <Route
           path="/instructor"

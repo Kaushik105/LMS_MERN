@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/api/axiosInstance";
-import { AxiosError } from "axios";;
+
 
 export async function registerService(formData) {
   const response = await axiosInstance.post("api/v1/auth/register", {
@@ -105,7 +105,7 @@ export async function fetchStudentViewCourseDetailsByIdService(id) {
 
 export async function getIfCourseIsPurchasedService(id, courseId) {
   const { data } = await axiosInstance.get(
-    `api/v1/student/course-status/${id}/${courseId}`
+    `/api/v1/student/course-status/${id}/${courseId}`
   );
 
   return data;
@@ -113,7 +113,7 @@ export async function getIfCourseIsPurchasedService(id, courseId) {
 
 export async function getPurchasedCoursesService(id) {
   const { data } = await axiosInstance.get(
-    `api/v1/student/course-status/bought-courses/${id}`
+    `/api/v1/student/course-status/bought-courses/${id}`
   );
 
   return data;
@@ -140,6 +140,21 @@ export async function resetCourseProgressService(formdata) {
   const { data } = await axiosInstance.post(
     "/api/v1/student/course-progress/reset",
     formdata
+  );
+
+  return data;
+}
+
+export async function createOrderService(orderData) {
+  const { data } = await axiosInstance.post("/api/v1/student/order/create", orderData);
+
+  return data;
+}
+
+export async function captureOrderService(orderID, payload) {
+  const { data } = await axiosInstance.post(
+    `/api/v1/student/order/${orderID}/capture`,
+    payload
   );
 
   return data;

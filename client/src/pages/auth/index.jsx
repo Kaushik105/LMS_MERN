@@ -11,8 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
 import { formValidator } from "@/utils/formValidator";
+import { useAuth } from "../../context/authContext";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("signIn");

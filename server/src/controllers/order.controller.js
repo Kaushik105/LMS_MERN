@@ -2,7 +2,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Order } from "../models/order.model.js";
 import { StudentCourses } from "../models/studentCourses.model.js";
 import client from "../helpers/paypal.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Course } from "../models/course.model.js";
 import {
@@ -32,6 +31,10 @@ const createOrder = asyncHandler(async (req, res) => {
 		courseId,
 		coursePricing,
 	} = req.body;
+
+	if (String(req.user?._id) !== String(userId)) {
+		throw new ApiError(403, "Forbidden request");
+	}
 
 	//saving the order in the database
 	const newOrder = await Order.create({
@@ -108,32 +111,33 @@ const captureFinalizeOrder = asyncHandler(async (req, res) => {
 		prefer: "return=minimal",
 	});
 
-	res.status(httpResponse.statusCode).json(JSON.parse(body));
-
-	
-	//TODO: update the order status in order model
-	let order = await Order.findById(newOrderId);
-	
+	// update the order status in order model
+	const order = await Order.findById(newOrderId);
 	if (!order) {
-		return res.status(500).json(new ApiError(500, "order not found"));
+		throw new ApiError(404, "order not found");
 	}
-	
+
+	if (String(req.user?._id) !== String(order.userId)) {
+		throw new ApiError(403, "Forbidden request");
+	}
+
 	order.paymentStatus = "paid";
 	order.orderStatus = "confirmed";
 	order.paymentId = paymentId;
 	order.payerId = payerId;
-	
-	await order.save()
-	
-	//TODO: update the student courses model to push this course in the courses array
-	
+	await order.save();
+
+	// update the student courses model to push this course in the courses array
 	const studentCourses = await StudentCourses.findOne({
 		userId: order.userId,
 	});
-	
+
 	if (studentCourses) {
-		if (!(studentCourses.courses.findIndex(course => course.courseId == order.courseId) !== -1)) {
-	
+		const existingCourseIndex = studentCourses.courses.findIndex(
+			(course) => course.courseId == order.courseId
+		);
+
+		if (existingCourseIndex === -1) {
 			studentCourses.courses.push({
 				courseId: order.courseId,
 				title: order.courseTitle,
@@ -142,13 +146,10 @@ const captureFinalizeOrder = asyncHandler(async (req, res) => {
 				dateOfPurchase: order.orderDate,
 				courseImage: order.courseImage,
 			});
-			
+
 			await studentCourses.save();
-			
 		}
 	} else {
-		console.log("Not exists");
-		
 		const newStudentCourses = new StudentCourses({
 			userId: order.userId,
 			courses: [
@@ -162,13 +163,11 @@ const captureFinalizeOrder = asyncHandler(async (req, res) => {
 				},
 			],
 		});
-		
+
 		await newStudentCourses.save();
 	}
-	
-	//TODO: update the students array of the course model
 
-
+	// update the students array of the course model
 	await Course.findByIdAndUpdate(order.courseId, {
 		$addToSet: {
 			students: {
@@ -179,6 +178,8 @@ const captureFinalizeOrder = asyncHandler(async (req, res) => {
 			},
 		},
 	});
+
+	return res.status(httpResponse.statusCode).json(JSON.parse(body));
 });
 
 export { captureFinalizeOrder, createOrder };

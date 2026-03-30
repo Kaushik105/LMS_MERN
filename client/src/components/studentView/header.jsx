@@ -30,8 +30,13 @@ function Header() {
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button variant={"outline"}>
+          <Button
+            variant={"outline"}
+            className={"cursor-pointer"}
+            onClick={() => navigate("/student/my-courses")}
+          >
             <TvMinimalPlay />
+            My Courses
           </Button>
           <Button
             onClick={handleLogOut}

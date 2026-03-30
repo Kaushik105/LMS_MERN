@@ -10,17 +10,21 @@ import {
 import VideoPlayer from "@/components/videoPlayer";
 import { useAuth } from "@/context/authContext";
 import { useStudent } from "@/context/studentContext";
-import { fetchStudentViewCourseDetailsByIdService, getIfCourseIsPurchasedService } from "@/services";
+import {
+  captureOrderService,
+  createOrderService,
+  fetchStudentViewCourseDetailsByIdService,
+  getIfCourseIsPurchasedService,
+} from "@/services";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
-import axios from "axios";
 import { CheckCircle, LockIcon, PlayCircleIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 function StudentViewCourseDetails() {
   const { id } = useParams();
-  const {auth} = useAuth();
-  const navigate=useNavigate()
+  const { auth } = useAuth();
+  const navigate = useNavigate();
   const {
     studentViewCourseDetails,
     setStudentViewCourseDetails,
@@ -30,8 +34,9 @@ function StudentViewCourseDetails() {
   const [openFreePreviewDialog, setOpenFreePreviewDialog] = useState(false);
   const [selectedPreviewLecture, setSelectedPreviewLecture] = useState(null);
 
-  //to store the created orderId temporarily
-  let newOrderId = null;
+  // Keep latest order id across renders for capture callback.
+  const newOrderIdRef = useRef(null);
+  const [, setMessage] = useState("");
 
   // paypal inital Options
   const initialOptions = {
@@ -50,24 +55,23 @@ function StudentViewCourseDetails() {
     setStudentViewCourseDetails(response?.data);
   }
 
-    async function getCurrentCoursePurchaseStatus() {
-      const response = await getIfCourseIsPurchasedService(auth?.user?._id, id);
-      if (response?.data?.isPurchased) {
-        navigate(`/student/course-progress/${studentViewCourseDetailsId}`)
-      }
-      
+  async function getCurrentCoursePurchaseStatus() {
+    if (!auth?.user?._id || !id) {
+      return;
     }
-    
- if (studentViewCourseDetailsId) {
-   getCurrentCoursePurchaseStatus()
- }
+
+    const response = await getIfCourseIsPurchasedService(auth.user._id, id);
+    if (response?.data?.isPurchased) {
+      navigate(`/student/course-progress/${id}`);
+    }
+  }
 
 
   async function createOrder() {
     const paymentPayload = {
-      userId: auth?.auth?.user?._id,
-      username: auth?.auth?.user?.userName,
-      userEmail: auth?.auth?.user?.userEmail,
+      userId: auth?.user?._id,
+      username: auth?.user?.userName,
+      userEmail: auth?.user?.userEmail,
       orderStatus: "pending",
       paymentMethod: "paypal",
       paymentStatus: "initiated",
@@ -82,21 +86,8 @@ function StudentViewCourseDetails() {
       coursePricing: studentViewCourseDetails?.pricing,
     };
     try {
-      const response = await fetch(
-        "http://localhost:3000/api/v1/student/order/create",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // use the "body" param to optionally pass additional order information
-          // like product ids and quantities
-          body: JSON.stringify(paymentPayload),
-        }
-      );
-
-      const orderData = await response.json();
-      newOrderId = orderData.newOrderId;
+      const orderData = await createOrderService(paymentPayload);
+      newOrderIdRef.current = orderData.newOrderId;
 
       if (orderData.id) {
         return orderData.id;
@@ -119,22 +110,11 @@ function StudentViewCourseDetails() {
     const captureOrderPayload = {
       paymentId: data.paymentID,
       payerId: data.payerID,
-      newOrderId,
+      newOrderId: newOrderIdRef.current,
     };
 
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/v1/student/order/${data.orderID}/capture`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(captureOrderPayload),
-        }
-      );
-
-      const orderData = await response?.json();
+      const orderData = await captureOrderService(data.orderID, captureOrderPayload);
 
 
       const errorDetail = orderData?.details?.[0];
@@ -160,6 +140,12 @@ function StudentViewCourseDetails() {
       fetchStudentViewCourseDetails(id);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (studentViewCourseDetailsId) {
+      getCurrentCoursePurchaseStatus();
+    }
+  }, [studentViewCourseDetailsId, auth?.user?._id]);
 
   function handleFreePreviewDialog(freePreviewLecture) {
     setSelectedPreviewLecture(freePreviewLecture);
